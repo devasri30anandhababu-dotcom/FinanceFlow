@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FinanceFlow – Personal Expense Tracker</title>
+<meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="assets/icons/icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+<nav class="side" aria-label="Main navigation">
+  <div class="brand"><img src="assets/icons/icon.svg" alt="" width="34" height="34"><div><b>FinanceFlow</b><small>Track. Understand. Save.</small></div></div>
+  <button data-act="go" data-id="dashboard"><span aria-hidden="true">📊</span><em>Dashboard</em></button>
+  <button data-act="go" data-id="transactions"><span aria-hidden="true">💸</span><em>Transactions</em></button>
+  <button data-act="go" data-id="add"><span aria-hidden="true">➕</span><em>Add</em></button>
+  <button data-act="go" data-id="budgets"><span aria-hidden="true">🎯</span><em>Budgets</em></button>
+  <button data-act="go" data-id="analytics"><span aria-hidden="true">📈</span><em>Analytics</em></button>
+  <button data-act="go" data-id="recurring"><span aria-hidden="true">🔁</span><em>Recurring</em></button>
+  <button data-act="go" data-id="settings"><span aria-hidden="true">⚙️</span><em>Settings</em></button>
+</nav>
+<main>
+<header class="top"><h1 id="title">Dashboard</h1>
+  <div class="row"><button class="btn ghost" id="themeBtn" data-act="theme" aria-label="Toggle dark mode">🌙</button>
+  <button class="btn" data-act="go" data-id="add">+ Quick Add Transaction</button></div></header>
+
+<section class="page" id="p-dashboard">
+  <div id="demoNote"></div>
+  <div class="cards" id="cards"></div>
+  <div class="grid2">
+    <div class="card"><h2>Monthly Expense Overview</h2><div class="cbox"><canvas id="chMonthly" aria-label="Monthly expenses chart" role="img"></canvas><p class="empty" hidden>No expenses yet.</p></div></div>
+    <div class="card"><h2>Expense by Category</h2><div class="cbox"><canvas id="chCat" aria-label="Expenses by category chart" role="img"></canvas><p class="empty" hidden>No expenses yet.</p></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h2>Recent Transactions</h2><div id="recent"></div></div>
+    <div class="card"><h2>Budget Progress (this month)</h2><div id="dashBudgets"></div></div>
+  </div>
+</section>
+
+<section class="page" id="p-transactions" hidden>
+  <div class="card filters">
+    <input id="fSearch" type="search" placeholder="Search description, category, amount" aria-label="Search transactions">
+    <select id="fType" aria-label="Filter by type"><option value="">All types</option><option value="income">Income</option><option value="expense">Expense</option></select>
+    <select id="fCat" aria-label="Filter by category"><option value="">All categories</option></select>
+    <select id="fPay" aria-label="Filter by payment method"><option value="">All payment methods</option></select>
+    <input id="fMonth" type="month" aria-label="Filter by month">
+    <select id="fSort" aria-label="Sort by"><option value="date">Sort: Date</option><option value="amount">Sort: Amount</option><option value="category">Sort: Category</option></select>
+    <button class="btn ghost" id="sortDir" data-act="sortDir">↓ Desc</button>
+    <button class="btn ghost" data-act="clearFilters">Clear Filters</button>
+  </div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payment</th><th>Type</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="txBody"></tbody></table></div><div id="txEmpty"></div></div>
+</section>
+
+<section class="page" id="p-add" hidden>
+  <form class="card form" id="txForm" novalidate>
+    <h2 id="txFormTitle">Add Transaction</h2><input type="hidden" id="tId">
+    <label>Transaction type<select id="tType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+    <label>Amount (₹)<input id="tAmount" type="number" min="0.01" step="0.01" inputmode="decimal" required></label>
+    <label>Category<select id="tCat" required></select></label>
+    <label>Date<input id="tDate" type="date" required></label>
+    <label>Payment method<select id="tPay"></select></label>
+    <label>Description<input id="tDesc" type="text" maxlength="120" placeholder="e.g. Lunch with friends"></label>
+    <p class="err" id="txErr" role="alert"></p>
+    <div class="row"><button class="btn" type="submit">Save Transaction</button><button class="btn ghost" type="button" data-act="cancelTx">Cancel</button></div>
+  </form>
+</section>
+
+<section class="page" id="p-budgets" hidden>
+  <form class="card form inline" id="bForm">
+    <h2>Set a monthly budget</h2>
+    <label>Category<select id="bCat" required></select></label>
+    <label>Monthly limit (₹)<input id="bLimit" type="number" min="1" step="1" required></label>
+    <label>Month<input id="bMonth" type="month" required></label>
+    <button class="btn" type="submit">Save Budget</button>
+  </form>
+  <div id="bWarn"></div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Category</th><th>Month</th><th>Limit</th><th>Spent</th><th>Remaining</th><th>Progress</th><th>Status</th><th>Actions</th></tr></thead><tbody id="bBody"></tbody></table></div><div id="bEmpty"></div></div>
+</section>
+
+<section class="page" id="p-analytics" hidden>
+  <div class="card filters"><label class="row">Month <select id="anMonth"></select></label></div>
+  <div class="cards" id="anStats"></div>
+  <div class="grid2">
+    <div class="card"><h2>Expenses by Category</h2><div class="cbox"><canvas id="anCat" aria-label="Doughnut chart of expenses by category" role="img"></canvas><p class="empty" hidden>No expenses this month.</p></div></div>
+    <div class="card"><h2>Income vs Expenses (daily)</h2><div class="cbox"><canvas id="anLine" aria-label="Line chart of income vs expenses" role="img"></canvas><p class="empty" hidden>No data this month.</p></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h2>Monthly Expenses</h2><div class="cbox"><canvas id="anBar" aria-label="Bar chart of monthly expenses" role="img"></canvas><p class="empty" hidden>No expenses yet.</p></div></div>
+    <div class="card"><h2>Category Spending Summary</h2><div id="anTable"></div></div>
+  </div>
+</section>
+
+<section class="page" id="p-recurring" hidden>
+  <form class="card form inline" id="rForm">
+    <h2 id="rFormTitle">Add recurring transaction</h2><input type="hidden" id="rId">
+    <label>Name<input id="rName" required maxlength="60" placeholder="e.g. Netflix"></label>
+    <label>Amount (₹)<input id="rAmount" type="number" min="0.01" step="0.01" required></label>
+    <label>Type<select id="rType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+    <label>Category<select id="rCat" required></select></label>
+    <label>Frequency<select id="rFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly" selected>Monthly</option><option value="yearly">Yearly</option></select></label>
+    <label>Next date<input id="rNext" type="date" required></label>
+    <div class="row"><button class="btn" type="submit">Save Recurring</button><button class="btn ghost" type="button" data-act="resetRec">Cancel</button></div>
+  </form>
+  <div class="card"><div class="tw"><table><thead><tr><th>Name</th><th>Amount</th><th>Type</th><th>Category</th><th>Frequency</th><th>Next date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rBody"></tbody></table></div><div id="rEmpty"></div></div>
+</section>
+
+<section class="page" id="p-settings" hidden>
+  <div class="card settings">
+    <h2>Appearance</h2><p><button class="btn ghost" data-act="theme">Switch light / dark mode</button></p>
+    <h2>Export</h2><p><button class="btn" data-act="exportCsv">Export transactions (CSV)</button> <button class="btn" data-act="exportJson">Export all data (JSON)</button></p>
+    <h2>Import</h2><p><button class="btn ghost" data-act="importBtn">Import JSON backup</button><input id="impFile" type="file" accept="application/json,.json" hidden></p>
+    <h2>Data</h2><p><button class="btn ghost" data-act="clearDemo">Clear sample data</button> <button class="btn danger" data-act="resetAll">Delete all data</button></p>
+    <p class="muted">All data is stored only in this browser (localStorage). Nothing is sent to any server.</p>
+  </div>
+</section>
+</main>
+</div>
+<dialog id="dlg"><form method="dialog"><p id="dlgMsg"></p><div class="row"><button class="btn ghost" value="no">Cancel</button><button class="btn" value="yes">Continue</button></div></form></dialog>
+<div id="toasts" aria-live="polite"></div>
+<script src="vendor/chart.umd.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
